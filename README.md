@@ -22,7 +22,7 @@ An example repository of using Kafka with Keda hosted on Kubernetes.
 
 1. Deploy Keda
     ```bash
-    start-keda.bat
+    ./start-keda.bat
     ```
 
 1. Now everything should be setup. You'll notice that the consumer-service pod may not be there as Keda scaled the deployment down to 0 as it isn't being used.

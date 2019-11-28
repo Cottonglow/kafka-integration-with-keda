@@ -18,5 +18,3 @@ spec:
         brokerList: kafka-cluster-kafka-bootstrap.keda-sample:9092
         consumerGroup: testSample
         lagThreshold: '3'
-currentReplicas: 1
-desiredReplicas: 1

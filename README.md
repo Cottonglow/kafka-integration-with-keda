@@ -8,7 +8,7 @@ An example repository of using Kafka with Keda hosted on Kubernetes.
 * Docker and Kubernetes
 
 # Run the example
-1. Start the Kafka and Zookeeper servers
+1. Start the Kafka and Zookeeper servers. The following script assumes that strimzi is located in the same directory as this project.
     ```bash
     ./start-kafka.bat
     ```
@@ -20,7 +20,7 @@ An example repository of using Kafka with Keda hosted on Kubernetes.
     ./start-consumer.bat
     ```
 
-1. Deploy Keda
+1. Deploy Keda. The following script assumes that keda is located in the same 
     ```bash
     ./start-keda.bat
     ```

@@ -1,5 +1,5 @@
 :: Build Docker Images
-docker build -f Dockerfile -t consumer .
+docker build -f Dockerfile -t simple-consumer .
 
 :: Start Consumer
 kubectl apply -f consumer-deployment.yml -n keda-sample

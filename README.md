@@ -8,16 +8,10 @@ An example repository of using Kafka with Keda hosted on Kubernetes.
 * Docker and Kubernetes
 
 # Run the example
-1. Build the Docker image.
-    ```bash
-    docker build -f Dockerfile -t simple-consumer .
-    ```
 1. Start the Kafka and Zookeeper servers. The following script assumes that strimzi is located in the same directory as this project.
     ```bash
     ./start-kafka.bat
     ```
-
-1. Wait for the Kafka pod to run otherwise the consumer will continuously fail to communicate with Kafka.
 
 1. Deploy the consumer
     ```bash

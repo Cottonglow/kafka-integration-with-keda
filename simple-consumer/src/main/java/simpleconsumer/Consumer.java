@@ -40,9 +40,12 @@ public class Consumer extends Thread
     public void run() {
         try {
             while (true) {
+
                 ConsumerRecords<String, String> records = this.consumer.poll(Duration.ofSeconds(7));
-                System.out.printf("Consuming %d records%n", records.count());
+                System.out.printf("Consuming %d records %n", records.count());
+
                 for (ConsumerRecord<String, String> record : records) {
+
                     // Add the record that is being consumed to an offset map that will get committed to Kafka
                     Map<TopicPartition, OffsetAndMetadata> offsetmap = new HashMap<>();
                     offsetmap.put(new TopicPartition(record.topic(), record.partition()),
@@ -57,7 +60,7 @@ public class Consumer extends Thread
 
                     // Commit offset as soon as it is consumed.
                     consumer.commitSync(offsetmap);
-                    System.out.printf("Committed %d offsets%n", offsetmap.size());
+                    System.out.printf("Committed %d offsets %n", offsetmap.size());
                 }
             }
         } catch (Exception e){

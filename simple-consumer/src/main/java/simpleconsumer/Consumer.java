@@ -49,7 +49,8 @@ public class Consumer extends Thread
                     // Add the record that is being consumed to an offset map that will get committed to Kafka
                     Map<TopicPartition, OffsetAndMetadata> offsetmap = new HashMap<>();
                     offsetmap.put(new TopicPartition(record.topic(), record.partition()),
-                    new OffsetAndMetadata(record.offset()));
+                    new OffsetAndMetadata(record.offset() + 1));
+                    System.out.println(record.offset());
 
                     try {
                         Thread.sleep(5000);

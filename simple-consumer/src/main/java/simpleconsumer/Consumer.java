@@ -28,6 +28,7 @@ public class Consumer extends Thread
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        // The interval to commit the offset when automatic commit is enabled
         // props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "5000");
         props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10);
@@ -42,6 +43,7 @@ public class Consumer extends Thread
                 ConsumerRecords<String, String> records = this.consumer.poll(Duration.ofSeconds(7));
                 System.out.printf("Consuming %d records%n", records.count());
                 for (ConsumerRecord<String, String> record : records) {
+                    // Add the record that is being consumed to an offset map that will get committed to Kafka
                     Map<TopicPartition, OffsetAndMetadata> offsetmap = new HashMap<>();
                     offsetmap.put(new TopicPartition(record.topic(), record.partition()),
                     new OffsetAndMetadata(record.offset()));
@@ -52,6 +54,8 @@ public class Consumer extends Thread
                         e.printStackTrace();
                     }
                     System.out.printf("%s received: %s%n", this.consumerName, record.value());
+
+                    // Commit offset as soon as it is consumed.
                     consumer.commitSync(offsetmap);
                     System.out.printf("Committed %d offsets%n", offsetmap.size());
                 }

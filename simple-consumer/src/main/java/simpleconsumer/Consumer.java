@@ -50,7 +50,6 @@ public class Consumer extends Thread
                     Map<TopicPartition, OffsetAndMetadata> offsetmap = new HashMap<>();
                     offsetmap.put(new TopicPartition(record.topic(), record.partition()),
                     new OffsetAndMetadata(record.offset() + 1));
-                    System.out.println(record.offset());
 
                     try {
                         Thread.sleep(5000);

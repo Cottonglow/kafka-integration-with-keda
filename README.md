@@ -13,12 +13,7 @@ An example repository of using Kafka with Keda hosted on Kubernetes.
     ./start-kafka.bat
     ```
 
-1. Deploy the consumer
-    ```bash
-    ./start-consumer.bat
-    ```
-
-1. Deploy Keda. The following script assumes that keda is located in the same 
+1. Deploy Keda. The following script assumes that keda is located in the same directory as this project.
     ```bash
     ./start-keda.bat
     ```

@@ -13,25 +13,25 @@ import java.util.Properties;
 import java.util.Map;
 import java.util.HashMap;
 
-public class Consumer extends Thread
-{
+public class Consumer extends Thread {
     private String consumerName;
     private KafkaConsumer<String, String> consumer;
 
-    public Consumer(String bootstrapServer, String consumerGroupId, String topic, String consumerName)
-    {
+    public Consumer(String bootstrapServer, String consumerGroupId, String topic, String consumerName) {
         this.consumerName = consumerName;
 
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId);        
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+                "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+                "org.apache.kafka.common.serialization.StringDeserializer");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         // The interval to commit the offset when automatic commit is enabled
         // props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "5000");
         props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
-        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10);
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1);
 
         this.consumer = new KafkaConsumer<>(props);
         this.consumer.subscribe(Arrays.asList(topic));
@@ -39,31 +39,30 @@ public class Consumer extends Thread
 
     public void run() {
         try {
-            while (true) {
+            ConsumerRecords<String, String> records = this.consumer.poll(Duration.ofSeconds(7));
+            System.out.printf("Consuming %d records %n", records.count());
 
-                ConsumerRecords<String, String> records = this.consumer.poll(Duration.ofSeconds(7));
-                System.out.printf("Consuming %d records %n", records.count());
+            for (ConsumerRecord<String, String> record : records) {
 
-                for (ConsumerRecord<String, String> record : records) {
+                // Add the record that is being consumed to an offset map that will get
+                // committed to Kafka
+                Map<TopicPartition, OffsetAndMetadata> offsetmap = new HashMap<>();
+                offsetmap.put(new TopicPartition(record.topic(), record.partition()),
+                        new OffsetAndMetadata(record.offset() + 1));
 
-                    // Add the record that is being consumed to an offset map that will get committed to Kafka
-                    Map<TopicPartition, OffsetAndMetadata> offsetmap = new HashMap<>();
-                    offsetmap.put(new TopicPartition(record.topic(), record.partition()),
-                    new OffsetAndMetadata(record.offset() + 1));
+                try {
+                    Thread.sleep(5000);
 
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e){
-                        e.printStackTrace();
-                    }
                     System.out.printf("%s received: %s%n", this.consumerName, record.value());
 
                     // Commit offset as soon as it is consumed.
                     consumer.commitSync(offsetmap);
                     System.out.printf("Committed %d offsets %n", offsetmap.size());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             this.consumer.close();
         }

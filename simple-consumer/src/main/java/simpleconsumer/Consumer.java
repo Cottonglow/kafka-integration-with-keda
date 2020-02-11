@@ -3,9 +3,12 @@ package simpleconsumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.TimeoutException;
+import org.apache.kafka.common.config.SaslConfigs;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -13,25 +16,29 @@ import java.util.Properties;
 import java.util.Map;
 import java.util.HashMap;
 
-public class Consumer extends Thread
-{
+public class Consumer extends Thread {
     private String consumerName;
     private KafkaConsumer<String, String> consumer;
 
-    public Consumer(String bootstrapServer, String consumerGroupId, String topic, String consumerName)
-    {
+    public Consumer(String bootstrapServer, String consumerGroupId, String topic, String consumerName,
+    String kafkaUserName, String kafkaUserPassword) {
         this.consumerName = consumerName;
 
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId);        
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+                "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+                "org.apache.kafka.common.serialization.StringDeserializer");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-        // The interval to commit the offset when automatic commit is enabled
-        // props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "5000");
         props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        // SCRAM-SHA-512 over PLAIN
+        props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
+        props.put(SaslConfigs.SASL_MECHANISM, "SCRAM-SHA-512");
+        props.put(SaslConfigs.SASL_JAAS_CONFIG, "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" + kafkaUserName + "\" password=\"" + kafkaUserPassword + "\";");
 
         this.consumer = new KafkaConsumer<>(props);
         this.consumer.subscribe(Arrays.asList(topic));
@@ -40,30 +47,36 @@ public class Consumer extends Thread
     public void run() {
         try {
             while (true) {
+                try {
+                    this.consumer.listTopics(Duration.ofSeconds(30));
 
-                ConsumerRecords<String, String> records = this.consumer.poll(Duration.ofSeconds(7));
-                System.out.printf("Consuming %d records %n", records.count());
+                    ConsumerRecords<String, String> records = this.consumer.poll(Duration.ofSeconds(7));
+                    System.out.printf("Consuming %d records %n", records.count());
 
-                for (ConsumerRecord<String, String> record : records) {
+                    for (ConsumerRecord<String, String> record : records) {
 
-                    // Add the record that is being consumed to an offset map that will get committed to Kafka
-                    Map<TopicPartition, OffsetAndMetadata> offsetmap = new HashMap<>();
-                    offsetmap.put(new TopicPartition(record.topic(), record.partition()),
-                    new OffsetAndMetadata(record.offset() + 1));
+                        // Add the record that is being consumed to an offset map that will get
+                        // committed to Kafka
+                        Map<TopicPartition, OffsetAndMetadata> offsetmap = new HashMap<>();
+                        offsetmap.put(new TopicPartition(record.topic(), record.partition()),
+                                new OffsetAndMetadata(record.offset() + 1));
 
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e){
-                        e.printStackTrace();
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        System.out.printf("%s received: %s%n", this.consumerName, record.value());
+
+                        // Commit offset as soon as it is consumed.
+                        consumer.commitSync(offsetmap);
+                        System.out.printf("Committed %d offsets %n", offsetmap.size());
                     }
-                    System.out.printf("%s received: %s%n", this.consumerName, record.value());
-
-                    // Commit offset as soon as it is consumed.
-                    consumer.commitSync(offsetmap);
-                    System.out.printf("Committed %d offsets %n", offsetmap.size());
+                } catch (TimeoutException exception) {
+                    System.out.printf("Timed out connecting %n");
                 }
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             this.consumer.close();
         }

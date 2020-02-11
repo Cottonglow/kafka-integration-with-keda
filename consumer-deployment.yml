@@ -18,4 +18,10 @@ spec:
         ports:
           - containerPort: 8090
         imagePullPolicy: Never
-        args: ["java", "-jar", "target/simple-consumer-1.0.0-jar-with-dependencies.jar", "kafka-cluster-kafka-bootstrap.keda-sample:9092", "testSample", "messages", "Bob", "true"]
+        args: ["java", "-jar", "target/simple-consumer-1.0.0-jar-with-dependencies.jar", "kafka-cluster-kafka-bootstrap.keda-sample:9092", "testSample", "messages", "Bob", "consumer-user", "$(KAFKA_USER_PASSWORD)"]
+        env:
+        - name: KAFKA_USER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: consumer-user
+              key: password

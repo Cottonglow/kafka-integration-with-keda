@@ -28,7 +28,6 @@ An example repository of using Kafka with Keda hosted on Kubernetes.
 1. Send messages to the consumer.
 
     ```bash
-    cd <KAFKA INSTALL DIRECTORY>\bin\windows
-    ./kafka-console-producer.bat --broker-list localhost:32100 --topic messages
+    ./<KAFKA INSTALL DIRECTORY>/bin/windows/kafka-console-producer.bat --broker-list localhost:32100 --topic messages --producer.config ssl-producer.properties
     ```
 1. You should now see the consumer scaling up as messages come in and down when there are no messages in the queue.

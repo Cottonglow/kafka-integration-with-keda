@@ -6,11 +6,14 @@ spec:
   kafka:
     replicas: 1
     listeners:
-      plain: {}
-      tls: {}
+      plain:
+        authentication:
+          type: scram-sha-512
       external:
         type: nodeport
         tls: false
+        authentication:
+          type: scram-sha-512
         overrides:
           bootstrap:
             nodePort: 32100
@@ -44,3 +47,33 @@ metadata:
 spec:
   partitions: 5
   replicas: 1
+---
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaUser
+metadata:
+  name: consumer-user
+  labels:
+    strimzi.io/cluster: kafka-cluster
+spec:
+  authentication:
+    type: scram-sha-512
+---
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaUser
+metadata:
+  name: producer-user
+  labels:
+    strimzi.io/cluster: kafka-cluster
+spec:
+  authentication:
+    type: scram-sha-512
+---
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaUser
+metadata:
+  name: scaler-user
+  labels:
+    strimzi.io/cluster: kafka-cluster
+spec:
+  authentication:
+    type: scram-sha-512

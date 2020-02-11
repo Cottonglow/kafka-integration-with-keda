@@ -1,13 +1,20 @@
 # Kafka integration with Keda
 An example repository of using Kafka with Keda hosted on Kubernetes.
 
-# Pre-requisite
+## Blogs
+If you arrived at this repository from a blog post and would like to follow the example or just want a more wordy explanation for the code, you can find a list below with the respective link and tag you need to checkout:
+
+* Exploring KEDA - A brief look at KEDA using Kafka triggers   
+  Link: https://cottonglow.github.io/2019-12-02-exploring-keda/   
+  Code: Checkout tag `exploring-keda`
+
+## Pre-requisite
 * Download Kafka (2.3.1)
 * Download the Strimzi Kafka operators (0.14.0)
 * Clone the Keda repository (v1.0.0)
 * Docker and Kubernetes
 
-# Run the example
+## Run the example
 1. Start the Kafka and Zookeeper servers. The following script assumes that strimzi is located in the same directory as this project.
     ```bash
     ./start-kafka.bat
